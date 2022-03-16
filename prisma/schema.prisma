@@ -15,7 +15,4 @@ model matches {
   url       String
   results_0 String
   results_1 String
-  textSearch  Unsupported("TSVECTOR")?
-
-  @@index([textSearch])
 }

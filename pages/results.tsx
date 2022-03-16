@@ -3,7 +3,6 @@ import { matches } from ".prisma/client";
 import { useQuery } from "react-query";
 import { useRouter } from "next/router";
 import dayjs from "dayjs";
-import { format } from "path/posix";
 
 // type Match = {
 //   id: number
@@ -15,7 +14,7 @@ import { format } from "path/posix";
 // }
 
 const getMatches = (query: string): Promise<matches[]> =>
-  fetch(`http://localhost:3000/api/search?q=${query}`).then((resp) =>
+  fetch(`/api/search?q=${query}`).then((resp) =>
     resp.json()
   );
 
