@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model matches {
+  id         Int      @id @default(autoincrement())
+  timestamp DateTime  @db.Timestamptz
+  title     String
+  url       String
+  results_0 String
+  results_1 String
+  textSearch  Unsupported("TSVECTOR")?
+
+  @@index([textSearch])
+}
