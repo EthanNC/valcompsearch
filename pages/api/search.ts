@@ -1,48 +1,43 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { Data } from "../../lib/constants";
 import { prisma } from "../../lib/prisma";
-import { matches } from ".prisma/client";
+// import { matches } from ".prisma/client";
 
-// GET /api/search?q=sova+cypher+astra
 //TODO: Check for duplicates in search
 export default async function handle(
   req: NextApiRequest,
-  res: NextApiResponse<matches[]>
+  res: NextApiResponse<Data>
 ) {
-  const query = req.query;
-  const cleanQuery = query.q.toString().replace(/\s/g, "&");
+  const query = req.query.q;
+  const cleanQuery = query.toString().replace(/\s/g, "&");
+  const excludeQuery = query.toString().replace(/\s/g, "|!");
 
-    const team1 = await prisma.matches.findMany({
-      where: {
-        results_0: {
-          search: cleanQuery,
-        },
-      },
-    });
-    const team2 = await prisma.matches.findMany({
-      where: {
-        results_1: {
-          search: cleanQuery,
-        },
-      },
+  const limit = 10;
+  const cursor = req.query.cursor ?? "";
+  const cursorObj =
+    cursor === "" ? undefined : { id: parseInt(cursor as string) };
 
-    });
+  const teams = await prisma.matches.findMany({
+    where: {
+        OR: [
+          {
+            results_0: { search: cleanQuery },
+            results_1: { search: "!" + excludeQuery}
+          },
+          {
+            results_1: { search: cleanQuery },
+            results_0: { search: "!" + excludeQuery}
+          },
+        ],
 
-    //if i want to remove remove dulicates
-    const teams = [...new Set([...team1, ...team2])];
+    },
+    skip: cursor !== "" ? 1 : 0,
+    cursor: cursorObj,
+    take: limit,
+  });
 
-
-//   const teams = await prisma.matches.findMany({
-//     where: {
-//       OR: [
-//         {
-//           results_0: { search: cleanQuery },
-//         },
-//         {
-//           results_1: { search: cleanQuery },
-//         },
-//       ],
-//     },
-//   });
-
-  res.json(teams as matches[]);
+  res.json({
+    teams,
+    nextId: teams.length === limit ? teams[limit - 1].id : undefined,
+  });
 }

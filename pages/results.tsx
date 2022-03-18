@@ -1,60 +1,183 @@
-import { Card, Container, Group, List, Text } from "@mantine/core";
+import {
+  Card,
+  Title,
+  Container,
+  Group,
+  SimpleGrid,
+  Text,
+  Divider,
+  Space,
+  Center,
+  Tooltip,
+} from "@mantine/core";
 import { matches } from ".prisma/client";
-import { useQuery } from "react-query";
-import { useRouter } from "next/router";
+import { useInfiniteQuery } from "react-query";
+import Router, { useRouter } from "next/router";
 import dayjs from "dayjs";
+import AgentGroup from "../components/AgentGroup";
+import { useInView } from "react-intersection-observer";
+import { Fragment, useEffect } from "react";
 
-// type Match = {
-//   id: number
-//   timestamp: string
-//   title: string
-//   url: string
-//   results_0: string
-//   results_1: string
+// interface QueryKeyType {
+//   Data: Data[]
+//   pageParam: string;
 // }
 
-const getMatches = (query: string): Promise<matches[]> =>
-  fetch(`/api/search?q=${query}`).then((resp) =>
-    resp.json()
-  );
+// const getMoreMatches = async ({ pageParam=''}: QueryKeyType) => {
 
+//   const searchedTeam = Router.query.team;
+//   const formatQuery = searchedTeam?.toString().replace(/\s/g, "+");
+//   const results = await fetch(`/api/search?q=${formatQuery}&cursor=${pageParam}`).then((resp) => resp.json())
+//   return results
+// }
+
+// const getMatches = (query: string, cursor = ""): Promise<Data> => {
+//   const formatQuery = query?.toString().replace(/\s/g, "+");
+//   return fetch(`/api/search?q=${formatQuery}&cursor=${cursor}`).then((resp) => resp.json());
+// }
 function Results() {
   const router = useRouter();
   const searchedTeam = router.query.team;
   const formatTeam = searchedTeam?.toString().replace(/\s/g, "::");
-  const { data: results, isLoading } = useQuery("matches", () =>
-    getMatches(searchedTeam as string)
+  const searchArray = formatTeam?.split("::");
+
+  const { ref, inView } = useInView();
+
+  const {
+    isLoading,
+    isError,
+    data,
+    error,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useInfiniteQuery(
+    "matches",
+    async ({ pageParam = "" }) => {
+      const searchedTeam = Router.query.team;
+      const formatQuery = searchedTeam?.toString().replace(/\s/g, "+");
+      const results = await fetch(
+        `/api/search?q=${formatQuery}&cursor=${pageParam}`
+      ).then((resp) => resp.json());
+      return results;
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextId ?? false,
+    }
   );
+
+  useEffect(() => {
+    if (inView && hasNextPage) {
+      console.log("fetching next page");
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, inView]);
 
   if (isLoading) {
     return <Container>Loading...</Container>;
   }
+  if (isError) return <div>Error! {JSON.stringify(error)}</div>;
 
   return (
     <Container>
-      <h1>Matches for {formatTeam}</h1>
-      <div style={{ width: 600, margin: "auto" }}>
-        {results?.map((match: matches, id: number) => (
-          <Card
-            shadow="sm"
-            p="xl"
-            component="a"
-            href={match.url}
-            target="_blank"
-            key={id}
-          >
-            <Card.Section>{match.title}</Card.Section>
-            <Group>
-              <Text size="md">{match.results_0}</Text>
-              <Text size="md">{match.results_1}</Text>
-            </Group>
-            <Card.Section>
-              {dayjs(match.timestamp.toString()).format(
-                "	dddd, MMMM D, YYYY h:mm A"
-              )}
-            </Card.Section>
-          </Card>
-        ))}
+      <h1>
+        <Center>  MATCHING </Center>
+        <Space h="md"/>
+        <AgentGroup agents={searchArray as string[]} size="lg" />
+      </h1>
+      <div style={{ width: 1000, margin: "auto" }}>
+        <SimpleGrid cols={3}>
+          {data &&
+            data.pages.map((page) => {
+              return (
+                <Fragment key={page.nextId ?? "lastPage"}>
+                  {page.teams?.map((match: matches) => (
+                    <Card
+                      shadow="sm"
+                      p="xl"
+                      component="a"
+                      href={match.url}
+                      target="_blank"
+                      key={match.id}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <div>
+                          <Tooltip
+                            wrapLines
+                            width={220}
+                            withArrow
+                            transition="fade"
+                            transitionDuration={200}
+                            label={match.title}
+                          >
+                            <Title
+                              style={{
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                overflow: "hidden",
+                              }}
+                              order={3}
+                            >
+                              {match.title}
+                            </Title>
+                          </Tooltip>
+                        </div>
+                        <Space h="md" />
+
+                        {
+                          <Group
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "center",
+                            }}
+                          >
+                            {
+                              <AgentGroup
+                                agentsMatch={searchArray}
+                                agents={match.results_1
+                                  .replace(/::/g, " ")
+                                  .replace(/:/g, "")
+                                  .split(" ")}
+                              />
+                            }
+                            <Title> VS </Title>
+                            <AgentGroup
+                              agentsMatch={searchArray}
+                              agents={match.results_0
+                                .replace(/::/g, " ")
+                                .replace(/:/g, "")
+                                .split(" ")}
+                            />
+                          </Group>
+                        }
+                        <Space h="md" />
+                        <Divider />
+                        <Text size="xs">
+                          {dayjs(match.timestamp.toString()).format(
+                            "	dddd, MMMM D, YYYY h:mm A"
+                          )}
+                        </Text>
+                      </div>
+                    </Card>
+                  ))}
+                </Fragment>
+              );
+            })}
+
+          {isFetchingNextPage ? (
+            <div className="loading">Loading...</div>
+          ) : null}
+        </SimpleGrid>
+        <span style={{ visibility: "hidden" }} ref={ref}>
+          intersection observer marker
+        </span>
       </div>
     </Container>
   );

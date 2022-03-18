@@ -18,28 +18,7 @@ import {
 import { useForm } from "@mantine/hooks";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
-
-// duelist, init, controller, sentinal
-// const mockdata = [
-
-//     {
-//       value: "bender",
-//       image: "https://img.icons8.com/clouds/256/000000/futurama-bender.png",
-//       label: "Bender Bending Rodríguez",
-//       description: "Fascinated with cooking, though has no sense of taste",
-//       group: "duelist"
-//     },
-
-//     {
-//       value: "Yoru",
-//       image: "/assets/yoru.png",
-//       label: "Carol Miller",
-//       description: "One of the richest people on Earth",
-
-//     },
-
-//   // ...other items
-// ];
+import { useIsFetching, useQueryClient } from 'react-query'
 
 const initialValues: TransferListData = [
   [
@@ -83,7 +62,7 @@ const initialValues: TransferListData = [
     {
       value: "neon",
       label: "Neon",
-      image: "/assets/Neon.png",
+      image: "/assets/neon.png",
       group: "Duelist",
     },
     {
@@ -193,6 +172,8 @@ interface Agent {
 export default function HomePage() {
   const [data, setData] = useState<TransferListData>(initialValues);
   const router = useRouter();
+  const isFetchingMatches = useIsFetching(['matches'])
+  const queryClient = useQueryClient()
 
   const form = useForm<SearchForm>({
     initialValues: {
@@ -203,15 +184,11 @@ export default function HomePage() {
   const updateList = (values: TransferListData) => {
     setData(values);
     form.setValues({ agents: values[1].map((a) => a.value) });
-    // if(values[1].length > 5){
-    //   form.setFieldError('agents', 'To many agents selected');
-    //   form.validate();
-    // }
   };
 
   const onSubmit = async ({ agents }: SearchForm) => {
     if (agents.length < 3 || agents.length > 5) return 1;
-
+    queryClient.resetQueries("matches", {exact: true})
     router.push(`/results?team=${agents.join('+')}`);
   };
 
@@ -236,17 +213,14 @@ export default function HomePage() {
         color="dimmed"
         align="center"
         size="lg"
-        sx={{ maxWidth: 580 }}
         mx="auto"
         mt="xl"
       >
-        This starter Next.js projects includes a minimal setup for server side
-        rendering, if you want to learn more on Mantine + Next.js integration
-        follow{" "}
-        <Anchor href="https://mantine.dev/theming/next/" size="lg">
-          this guide
+         Select a team of agents and search 
+        <Anchor href="https://rib.gg" size="lg">
+          {" "}Rib.gg{" "}
         </Anchor>
-        . To get started edit index.tsx file.
+        for professional Valorant matches.
       </Text>
       <Space h="md" />
 
@@ -271,7 +245,6 @@ export default function HomePage() {
                     src={agent.image}
                     radius="xl"
                     size="lg"
-                    // style={{border: "2px", borderColor:"red", borderStyle:"solid"}}
                   />
                 ))}
               </Group>
