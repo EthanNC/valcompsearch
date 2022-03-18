@@ -17,3 +17,5 @@ https://dev.to/adron/getting-copy-for-bulk-csv-working-on-a-container-running-po
 
 
 
+## Sourcing
+https://www.reddit.com/r/VALORANT/comments/kk9ged/i_made_a_clean_valorant_desktop_icon/

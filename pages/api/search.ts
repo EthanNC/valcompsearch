@@ -17,19 +17,24 @@ export default async function handle(
   const cursorObj =
     cursor === "" ? undefined : { id: parseInt(cursor as string) };
 
+  const order = req.query.order === "desc" ? "desc" : "";
+  
+  
   const teams = await prisma.matches.findMany({
     where: {
-        OR: [
-          {
-            results_0: { search: cleanQuery },
-            results_1: { search: "!" + excludeQuery}
-          },
-          {
-            results_1: { search: cleanQuery },
-            results_0: { search: "!" + excludeQuery}
-          },
-        ],
-
+      OR: [
+        {
+          results_0: { search: cleanQuery },
+          results_1: { search: "!" + excludeQuery },
+        },
+        {
+          results_1: { search: cleanQuery },
+          results_0: { search: "!" + excludeQuery },
+        },
+      ],
+    },
+    orderBy: {
+      timestamp: order !== "" ? "asc" : "desc"
     },
     skip: cursor !== "" ? 1 : 0,
     cursor: cursorObj,

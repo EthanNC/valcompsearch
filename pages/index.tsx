@@ -18,7 +18,8 @@ import {
 import { useForm } from "@mantine/hooks";
 import { useRouter } from "next/router";
 import React, { useState } from "react";
-import { useIsFetching, useQueryClient } from 'react-query'
+import {useQueryClient } from 'react-query'
+import Seo from "../components/Seo";
 
 const initialValues: TransferListData = [
   [
@@ -172,7 +173,6 @@ interface Agent {
 export default function HomePage() {
   const [data, setData] = useState<TransferListData>(initialValues);
   const router = useRouter();
-  const isFetchingMatches = useIsFetching(['matches'])
   const queryClient = useQueryClient()
 
   const form = useForm<SearchForm>({
@@ -189,11 +189,12 @@ export default function HomePage() {
   const onSubmit = async ({ agents }: SearchForm) => {
     if (agents.length < 3 || agents.length > 5) return 1;
     queryClient.resetQueries("matches", {exact: true})
-    router.push(`/results?team=${agents.join('+')}`);
+    router.push(`/results?team=${agents.join('+')}&order=`);
   };
 
   return (
     <>
+      <Seo/>
       <Title
         sx={{ fontSize: 100, fontWeight: 900, letterSpacing: -2 }}
         align="center"

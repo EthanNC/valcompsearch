@@ -1,4 +1,5 @@
 import {
+  Button,
   Card,
   Title,
   Container,
@@ -9,39 +10,31 @@ import {
   Space,
   Center,
   Tooltip,
+  Navbar,
+  NativeSelect,
 } from "@mantine/core";
 import { matches } from ".prisma/client";
-import { useInfiniteQuery } from "react-query";
+import { useInfiniteQuery, useQueryClient } from "react-query";
 import Router, { useRouter } from "next/router";
 import dayjs from "dayjs";
 import AgentGroup from "../components/AgentGroup";
 import { useInView } from "react-intersection-observer";
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useState } from "react";
+import ArrowIcon from "../components/ArrowIcon";
+import Seo from "../components/Seo";
 
-// interface QueryKeyType {
-//   Data: Data[]
-//   pageParam: string;
-// }
-
-// const getMoreMatches = async ({ pageParam=''}: QueryKeyType) => {
-
-//   const searchedTeam = Router.query.team;
-//   const formatQuery = searchedTeam?.toString().replace(/\s/g, "+");
-//   const results = await fetch(`/api/search?q=${formatQuery}&cursor=${pageParam}`).then((resp) => resp.json())
-//   return results
-// }
-
-// const getMatches = (query: string, cursor = ""): Promise<Data> => {
-//   const formatQuery = query?.toString().replace(/\s/g, "+");
-//   return fetch(`/api/search?q=${formatQuery}&cursor=${cursor}`).then((resp) => resp.json());
-// }
 function Results() {
   const router = useRouter();
   const searchedTeam = router.query.team;
   const formatTeam = searchedTeam?.toString().replace(/\s/g, "::");
   const searchArray = formatTeam?.split("::");
 
+  const queryOrder = router.query.order
+  const [searchOrder, setSearchOrder] = useState(queryOrder);
+
+  const queryClient = useQueryClient();
   const { ref, inView } = useInView();
+  const order = searchOrder !== "Oldest" ? "" : "desc";
 
   const {
     isLoading,
@@ -52,12 +45,12 @@ function Results() {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery(
-    "matches",
+    ["matches", searchedTeam, searchOrder || queryOrder],
     async ({ pageParam = "" }) => {
-      const searchedTeam = Router.query.team;
+
       const formatQuery = searchedTeam?.toString().replace(/\s/g, "+");
       const results = await fetch(
-        `/api/search?q=${formatQuery}&cursor=${pageParam}`
+        `/api/search?q=${formatQuery}&cursor=${pageParam}&order=${order}`
       ).then((resp) => resp.json());
       return results;
     },
@@ -73,6 +66,11 @@ function Results() {
     }
   }, [fetchNextPage, hasNextPage, inView]);
 
+  useEffect(() => {
+    
+    queryClient.resetQueries("matches", { exact: true, },  );
+  }, [queryClient, searchOrder]);
+
   if (isLoading) {
     return <Container>Loading...</Container>;
   }
@@ -80,13 +78,46 @@ function Results() {
 
   return (
     <Container>
-      <h1>
-        <Center>  MATCHING </Center>
-        <Space h="md"/>
+      <Seo templateTitle="Search Results"/>
+      <Navbar height={150} fixed px="xl">
+        <Navbar.Section
+          style={{
+            display: "flex",
+            justifyContent: "space-around",
+            alignItems: "center",
+          }}
+        >
+          <Button
+            leftIcon={<ArrowIcon />}
+            onClick={() => router.push("/")}
+            size="xl"
+            variant="subtle"
+          >
+            {" "}
+            Back{" "}
+          </Button>
+          <NativeSelect
+            value={searchOrder}
+            data={["Newest", "Oldest"]}
+            onChange={(event) => setSearchOrder(event.currentTarget.value)}
+          />
+        </Navbar.Section>
         <AgentGroup agents={searchArray as string[]} size="lg" />
+      </Navbar>
+      <Space h="xl" />
+      <h1>
+        <Center> MATCHING </Center>
+        <Space h="md" />
       </h1>
-      <div style={{ width: 1000, margin: "auto" }}>
-        <SimpleGrid cols={3}>
+      <div style={{ margin: "auto" }}>
+        <SimpleGrid
+          breakpoints={[
+            { maxWidth: "md", cols: 3, spacing: "md" },
+            { maxWidth: "sm", cols: 2, spacing: "sm" },
+            { maxWidth: "xs", cols: 1, spacing: "sm" },
+          ]}
+          cols={3}
+        >
           {data &&
             data.pages.map((page) => {
               return (
@@ -107,27 +138,17 @@ function Results() {
                           justifyContent: "space-between",
                         }}
                       >
-                        <div>
-                          <Tooltip
-                            wrapLines
-                            width={220}
-                            withArrow
-                            transition="fade"
-                            transitionDuration={200}
-                            label={match.title}
-                          >
-                            <Title
-                              style={{
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                              }}
-                              order={3}
-                            >
-                              {match.title}
-                            </Title>
-                          </Tooltip>
-                        </div>
+                        <Tooltip
+                          wrapLines
+                          width={220}
+                          withArrow
+                          transition="fade"
+                          transitionDuration={200}
+                          label={match.title}
+                        >
+                          <Title order={3}>{match.title}</Title>
+                        </Tooltip>
+
                         <Space h="md" />
 
                         {
@@ -136,6 +157,7 @@ function Results() {
                               display: "flex",
                               flexDirection: "column",
                               alignItems: "center",
+                              flexWrap: "nowrap",
                             }}
                           >
                             {
