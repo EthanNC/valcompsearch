@@ -12,10 +12,11 @@ import {
   Tooltip,
   Navbar,
   NativeSelect,
+  Skeleton
 } from "@mantine/core";
 import { matches } from ".prisma/client";
 import { useInfiniteQuery, useQueryClient } from "react-query";
-import Router, { useRouter } from "next/router";
+import { useRouter } from "next/router";
 import dayjs from "dayjs";
 import AgentGroup from "../components/AgentGroup";
 import { useInView } from "react-intersection-observer";
@@ -33,7 +34,7 @@ function Results() {
   const [searchOrder, setSearchOrder] = useState(queryOrder);
 
   const queryClient = useQueryClient();
-  const { ref, inView } = useInView();
+  const { ref, inView } = useInView({threshold: 1});
   const order = searchOrder !== "Oldest" ? "" : "desc";
 
   const {
@@ -61,7 +62,6 @@ function Results() {
 
   useEffect(() => {
     if (inView && hasNextPage) {
-      console.log("fetching next page");
       fetchNextPage();
     }
   }, [fetchNextPage, hasNextPage, inView]);
@@ -194,13 +194,18 @@ function Results() {
             })}
 
           {isFetchingNextPage ? (
-            <div className="loading">Loading...</div>
+            <Skeleton visible={true}>
+            Lorem ipsum dolor sit amet...
+            {/* other content */}
+            </Skeleton>
           ) : null}
+          
         </SimpleGrid>
-        <span style={{ visibility: "hidden" }} ref={ref}>
+
+      </div>
+      <span style={{ visibility: "hidden" }} ref={ref}>
           intersection observer marker
         </span>
-      </div>
     </Container>
   );
 }
