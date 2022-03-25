@@ -139,7 +139,7 @@ export default function HomePage() {
               </Group>
             </InputWrapper>
           </form>
-        </Box>
+      </Box>
       )}
 
       <Container size="md" px="xs" mt="md">
