@@ -1,21 +1,17 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<img src="public/assets/logo.webp" width="250"/>
 
 # Overveiw
-Using Posgres FULL text search: https://www.claritician.com/how-to-implement-full-text-search-in-prisma-with-postgresql
-`
-# Things to do
+Search for professional Valorant matches containing specific agents. Featuring [useInfiniteQuery](https://react-query.tanstack.com/reference/useInfiniteQuery) from React Query and Prisma's [full-text search](https://www.prisma.io/docs/concepts/components/prisma-client/full-text-search) on ~10,000 rows
 
-## Optimization
-Making this generate all routes on build. 20 something agents. Generate all possible team comps as routes and run at build time for faster query(?)
-https://bionicjulia.com/blog/creating-dynamic-tag-page-nextjs-nested-routes
-https://prateeksurana.me/blog/mastering-data-fetching-with-react-query-and-next-js/ (SSG/ISR example)
-## Save past searches in local storage
+## Stack
 
-
-## Backend
-https://dev.to/adron/getting-copy-for-bulk-csv-working-on-a-container-running-postgresql-3kk9
+- Next.js 12
+- React 17
+- TypeScript
+- Prisma 2
+- Mantine
+- React Query 
 
 
-
-## Sourcing
+## Logo Source
 https://www.reddit.com/r/VALORANT/comments/kk9ged/i_made_a_clean_valorant_desktop_icon/
