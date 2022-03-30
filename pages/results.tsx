@@ -24,6 +24,7 @@ import { Fragment, useEffect, useState } from "react";
 import ArrowIcon from "../components/ArrowIcon";
 import Seo from "../components/Seo";
 import { MAPS } from "../lib/constants";
+import Link from "next/link";
 
 function Results() {
   const router = useRouter();
@@ -92,19 +93,15 @@ function Results() {
             alignItems: "center",
           }}
         >
-          <Button
-            leftIcon={<ArrowIcon />}
-            onClick={() => router.push("/")}
-            size="xl"
-            variant="subtle"
-          >
-            {" "}
-            Back{" "}
-          </Button>
+          <Link href="/" passHref>
+            <Button leftIcon={<ArrowIcon />} size="xl" variant="subtle">
+              {" "}
+              Back{" "}
+            </Button>
+          </Link>
           <Group>
             <NativeSelect
               id="mapSelect"
-              defaultValue={0}
               value={searchMap}
               placeholder="Filter by map"
               data={MAPS}
@@ -146,64 +143,60 @@ function Results() {
                       href={match.url}
                       target="_blank"
                       key={match.id}
-                      style={{ height: "max-content" }}
+                      style={{
+                        height: "100%",
+                        display: "inline-flex",
+                        flexDirection: "column",
+                        justifyContent: "space-evenly",
+                      }}
                     >
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "space-between",
-                        }}
+                      <Tooltip
+                        wrapLines
+                        width={220}
+                        withArrow
+                        transition="fade"
+                        transitionDuration={200}
+                        label={match.title}
                       >
-                        <Tooltip
-                          wrapLines
-                          width={220}
-                          withArrow
-                          transition="fade"
-                          transitionDuration={200}
-                          label={match.title}
+                        <Title order={3}>{match.title}</Title>
+                      </Tooltip>
+
+                      <Space h="md" />
+
+                      {
+                        <Group
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                          }}
                         >
-                          <Title order={3}>{match.title}</Title>
-                        </Tooltip>
-
-                        <Space h="md" />
-
-                        {
-                          <Group
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "center",
-                              flexWrap: "nowrap",
-                            }}
-                          >
-                            {
-                              <AgentGroup
-                                agentsMatch={searchArray}
-                                agents={match.results_1
-                                  .replace(/::/g, " ")
-                                  .replace(/:/g, "")
-                                  .split(" ")}
-                              />
-                            }
-                            <Title> VS </Title>
+                          {
                             <AgentGroup
                               agentsMatch={searchArray}
-                              agents={match.results_0
+                              agents={match.results_1
                                 .replace(/::/g, " ")
                                 .replace(/:/g, "")
                                 .split(" ")}
                             />
-                          </Group>
-                        }
-                        <Space h="md" />
-                        <Divider />
-                        <Text size="xs">
-                          {dayjs(match.timestamp.toString()).format(
-                            "	dddd, MMMM D, YYYY h:mm A"
-                          )}
-                        </Text>
-                      </div>
+                          }
+                          <Title> VS </Title>
+                          <AgentGroup
+                            agentsMatch={searchArray}
+                            agents={match.results_0
+                              .replace(/::/g, " ")
+                              .replace(/:/g, "")
+                              .split(" ")}
+                          />
+                        </Group>
+                      }
+                      <Space h="md" />
+                      <Divider />
+                      <Text size="xs">
+                        {dayjs(match.timestamp.toString()).format(
+                          "	dddd, MMMM D, YYYY h:mm A"
+                        )}
+                      </Text>
                     </Card>
                   ))}
                 </Fragment>
