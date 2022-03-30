@@ -116,3 +116,15 @@ export const AgentList: TransferListData = [
   ],
   [],
 ];
+
+
+export const MAPS = [
+  { value: 'all', label:'All Maps'},
+  { value: 'bind', label: 'Bind' },
+  { value: 'haven', label: 'Haven' },
+  { value: 'split', label: 'Split' },
+  { value: 'icebox', label: 'Icebox' },
+  { value: 'ascent', label: 'Ascent' },
+  { value: 'breeze', label: 'Breeze' },
+  { value: 'fracture', label: 'Fracture' },
+];
