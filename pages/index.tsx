@@ -27,7 +27,7 @@ const ItemComponent: TransferListItemComponent = ({
   data,
   selected,
 }: TransferListItemComponentProps) => (
-  <Group noWrap>
+  <Group noWrap id={data.label}>
     <Avatar src={data.image} radius="xl" size="lg" />
     <div style={{ flex: 1 }}>
       <Text size="sm" weight={1000}>
@@ -38,6 +38,7 @@ const ItemComponent: TransferListItemComponent = ({
       </Text>
     </div>
     <Checkbox
+      id={data.label}
       checked={selected}
       onChange={() => {}}
       tabIndex={-1}
@@ -135,7 +136,7 @@ export default function HomePage() {
                 ))}
               </Group>
               <Group position="center" mt="md">
-                <Button type="submit">Submit</Button>
+                <Button id="submit" type="submit">Submit</Button>
               </Group>
             </InputWrapper>
           </form>

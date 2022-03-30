@@ -7,7 +7,8 @@
     "build": "yarn migrate:deploy && next build",
     "start": "next start",
     "lint": "next lint",
-    "migrate:deploy": "prisma migrate deploy --preview-feature"
+    "migrate:deploy": "prisma migrate deploy --preview-feature",
+    "cypress": "cypress open"
   },
   "dependencies": {
     "@mantine/core": "^4.0.1",
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/node": "17.0.21",
     "@types/react": "17.0.40",
+    "cypress": "^9.5.3",
     "eslint": "8.10.0",
     "eslint-config-next": "12.1.0",
     "prisma": "^3.10.0",

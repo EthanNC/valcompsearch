@@ -12,7 +12,7 @@ import {
   Tooltip,
   Navbar,
   NativeSelect,
-  Skeleton
+  Skeleton,
 } from "@mantine/core";
 import { matches } from ".prisma/client";
 import { useInfiniteQuery, useQueryClient } from "react-query";
@@ -23,6 +23,7 @@ import { useInView } from "react-intersection-observer";
 import { Fragment, useEffect, useState } from "react";
 import ArrowIcon from "../components/ArrowIcon";
 import Seo from "../components/Seo";
+import { MAPS } from "../lib/constants";
 
 function Results() {
   const router = useRouter();
@@ -30,12 +31,18 @@ function Results() {
   const formatTeam = searchedTeam?.toString().replace(/\s/g, "::");
   const searchArray = formatTeam?.split("::");
 
-  const queryOrder = router.query.order
+  const queryOrder = router.query.order;
   const [searchOrder, setSearchOrder] = useState(queryOrder);
 
+  const queryMap = router.query.map;
+  const [searchMap, setSearchMap] = useState(queryMap);
+
   const queryClient = useQueryClient();
-  const { ref, inView } = useInView({threshold: 1});
+
+  const { ref, inView } = useInView({ threshold: 1 });
+
   const order = searchOrder !== "Oldest" ? "" : "desc";
+  const map = searchMap !== undefined ? searchMap : "all";
 
   const {
     isLoading,
@@ -46,12 +53,11 @@ function Results() {
     fetchNextPage,
     hasNextPage,
   } = useInfiniteQuery(
-    ["matches", searchedTeam, searchOrder || queryOrder],
+    ["matches", searchedTeam, searchOrder || queryOrder, searchMap],
     async ({ pageParam = "" }) => {
-
       const formatQuery = searchedTeam?.toString().replace(/\s/g, "+");
       const results = await fetch(
-        `/api/search?q=${formatQuery}&cursor=${pageParam}&order=${order}`
+        `/api/search?q=${formatQuery}&cursor=${pageParam}&order=${order}&map=${map}`
       ).then((resp) => resp.json());
       return results;
     },
@@ -67,8 +73,7 @@ function Results() {
   }, [fetchNextPage, hasNextPage, inView]);
 
   useEffect(() => {
-    
-    queryClient.resetQueries("matches", { exact: true, },  );
+    queryClient.resetQueries("matches", { exact: true });
   }, [queryClient, searchOrder]);
 
   if (isLoading) {
@@ -78,7 +83,7 @@ function Results() {
 
   return (
     <Container>
-      <Seo templateTitle="Search Results"/>
+      <Seo templateTitle="Search Results" />
       <Navbar height={150} fixed px="xl">
         <Navbar.Section
           style={{
@@ -96,11 +101,22 @@ function Results() {
             {" "}
             Back{" "}
           </Button>
-          <NativeSelect
-            value={searchOrder}
-            data={["Newest", "Oldest"]}
-            onChange={(event) => setSearchOrder(event.currentTarget.value)}
-          />
+          <Group>
+            <NativeSelect
+              id="mapSelect"
+              defaultValue={0}
+              value={searchMap}
+              placeholder="Filter by map"
+              data={MAPS}
+              onChange={(event) => setSearchMap(event.currentTarget.value)}
+            />
+            <NativeSelect
+              id="orderSelect"
+              value={searchOrder}
+              data={["Newest", "Oldest"]}
+              onChange={(event) => setSearchOrder(event.currentTarget.value)}
+            />
+          </Group>
         </Navbar.Section>
         <AgentGroup agents={searchArray as string[]} size="lg" />
       </Navbar>
@@ -130,6 +146,7 @@ function Results() {
                       href={match.url}
                       target="_blank"
                       key={match.id}
+                      style={{ height: "max-content" }}
                     >
                       <div
                         style={{
@@ -195,17 +212,15 @@ function Results() {
 
           {isFetchingNextPage ? (
             <Skeleton visible={true}>
-            Lorem ipsum dolor sit amet...
-            {/* other content */}
+              Lorem ipsum dolor sit amet...
+              {/* other content */}
             </Skeleton>
           ) : null}
-          
         </SimpleGrid>
-
       </div>
       <span style={{ visibility: "hidden" }} ref={ref}>
-          intersection observer marker
-        </span>
+        intersection observer marker
+      </span>
     </Container>
   );
 }

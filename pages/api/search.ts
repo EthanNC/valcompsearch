@@ -6,12 +6,12 @@ export default async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== "GET" ) {
+  if (req.method !== "GET") {
     res.status(405).json(new Error("Method not allowed"));
     return;
   }
-  if (typeof req.query.q !== 'string' || !req.query.q) {
-    res.status(400).json({ err: 'Invalid query' });
+  if (typeof req.query.q !== "string" || !req.query.q) {
+    res.status(400).json({ err: "Invalid query" });
     return;
   }
 
@@ -26,16 +26,25 @@ export default async function handle(
     cursor === "" ? undefined : { id: parseInt(cursor as string) };
 
   const order = req.query.order === "desc" ? "desc" : "";
+
+  const map = req.query.map ?? undefined;
+  const mapQuery = map && map !== "all" ? map.toString() : undefined;
+
   const teams = await prisma.matches.findMany({
     where: {
-      OR: [
+      AND: [
+        { title: { search: mapQuery } },
         {
-          results_0: { search: cleanQuery },
-          results_1: { search: "!" + excludeQuery },
-        },
-        {
-          results_1: { search: cleanQuery },
-          results_0: { search: "!" + excludeQuery },
+          OR: [
+            {
+              results_0: { search: cleanQuery },
+              results_1: { search: "!" + excludeQuery },
+            },
+            {
+              results_1: { search: cleanQuery },
+              results_0: { search: "!" + excludeQuery },
+            },
+          ],
         },
       ],
     },
